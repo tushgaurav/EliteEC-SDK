@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "elite-ec-sdk"
+version = "1.0.0"
+description = "SDK for Elite EC Series Cobots"
+readme = "README.md"
+authors = [{ name = "Tushar Gaurav", email = "tushar.gaurav416@gmail.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["elite-sdk", "elite-ec", "elite-robots"]
+dependencies = [
+    'tomli; python_version < "3.11"',
+]
+requires-python = ">=3.1"
+
+[project.optional-dependencies]
+dev = ["black", "bumpver", "isort", "pip-tools"]
+
+[project.urls]
+Homepage = "https://github.com/tushgaurav/EliteECSeriesSDK"
+
+[project.scripts]
+test-connection = "robot.__main__:main"
