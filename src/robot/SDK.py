@@ -10,6 +10,19 @@ class Robot:
         self.sock = None
 
     def sendCMD(self,cmd,params=None,id=1):
+        '''
+        Note: This function should not be used directly, instead use the execute function.
+
+        Internal Function to send commands to the robot.
+        This function is essentially the same as mentioned in the 
+        official Programming Manual.
+        All commands are mentioned in the Programming Manual.
+
+        Attributes:
+            cmd (string): The command that we want to send.
+            params (dict): If the commands requires additional parameters, specify here.
+
+        '''
         sock = self.sock
 
         if(not params):
@@ -32,6 +45,12 @@ class Robot:
             return (False,None,None)
 
     def connect(self):
+        '''
+        This function is used to establish a connection with the robot.
+
+        Returns:
+            list: [bool, str] -> [True, "Robot connected at IP (ACTUAL IP)"] or [False, "Cannot connect at IP (ACTUAL IP)"]
+        '''
         def connectETController(ip,port=8055):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
@@ -54,6 +73,12 @@ class Robot:
             return [False, f"Cannot connect at IP:{self.ip_address}"]
         
     def disconnect(self):
+        '''
+        This function is used to disconnect from the robot.
+
+        Returns:
+            list: [bool, str] -> [True, "Robot Disconnect Success"]
+        '''
         if self.sock:
             self.sock.close()
             self.sock = None
@@ -63,6 +88,16 @@ class Robot:
             return [True, "Robot Disconnect Success, Robot was already disconected."]
 
     def execute(self, command, params):
+        '''
+        This function is used to execute commands on the robot. Better version of the official sendCMD function.
+
+        Attributes:
+            command (string): The command that we want to execute.
+            params (dict): If the commands requires additional parameters, specify here.
+
+        Returns:
+            list: [int, str] -> [ID, "Result of the command"]
+        '''
         if self.connect_success:
             suc, result, id = self.sendCMD(self.sock, command, params)
 
@@ -74,6 +109,17 @@ class Robot:
             return [False, "Robot not connected."]
         
     def getVariable(self, variable_type, variable_address):
+        '''
+        This function is used to get the value of a variable from the robot.
+
+        Attributes:
+            variable_type (string): The type of variable we want to get, for example: SysVarI, SysVarB, etc.
+            variable_address (int): The address of the variable we want to get.
+
+        Returns:
+            list: [int, str] -> [ID, Value of the variable]
+        '''
+
         if self.connect_success:
             suc, result, id = self.sendCMD(self.sock, f"get{variable_type}", {"addr": variable_address})
             if suc:
@@ -84,6 +130,17 @@ class Robot:
             return [False, f"Robot not connected at IP:{self.ip_address}"]
         
     def setVariable(self, variable_type, variable_address, variable_value):
+        '''
+        This function is used to set the value of a variable from the robot.
+
+        Attributes:
+            variable_type (string): The type of variable we want to set, for example: SysVarI, SysVarB, etc.
+            variable_address (int): The address of the variable we want to set.
+            variable_value (int): The value of the variable we want to set.
+
+        Returns:
+            list: [int, str] -> [ID, Result of the command]
+        '''
         if self.connect_success:
             suc, result, id = self.sendCMD(self.sock, f"set{variable_type}", {"addr": variable_address, "value": variable_value})
             if suc:
@@ -94,6 +151,15 @@ class Robot:
             return [False, f"Robot not connected at IP:{self.ip_address}"]
 
     def setServoStatus(self, status):
+        '''
+        This function is used to set the servo status of the robot.
+
+        Attributes:
+            status (int): The status of the servo, 0 for OFF and 1 for ON.
+        
+        Returns:
+            list: [int, str] -> [ID, Result of the command]
+        '''
         if self.connect_success:
             suc, result, id = self.sendCMD(self.sock, "set_servo_status", {"status": status})
             if suc:
@@ -104,6 +170,16 @@ class Robot:
             return [False, f"Robot not connected at IP:{self.ip_address}"]
         
     def runJbi(self, jbi_filename):
+        '''
+        This function is used to run a jbi file on the robot.
+
+        Attributes:
+            jbi_filename (string): The name of the jbi file we want to run.
+        
+        Returns:
+            list: [int, str] -> [ID, Result of the command]
+        '''
+
         if self.connect_success:
             suc, result, id = self.sendCMD(self.sock, "checkJbiExist", {"filename": jbi_filename})
             if suc and result == 1:
@@ -118,6 +194,12 @@ class Robot:
             return [False, f"Robot not connected at IP:{self.ip_address}"]
     
     def getJbiState(self):
+        '''
+        This function is used to get the state of the jbi file running on the robot.
+
+        Returns:
+            list: [int, str] -> [ID, Result of the command]
+        '''
         if self.connect_success:
             suc, result, id = self.sendCMD(self.sock, "getJbiState")
             if suc:
@@ -129,11 +211,6 @@ class Robot:
     
     def __repr__(self):
         return f'Robot Object at IP:{self.ip_address}, Connection:{self.connect_success}'
-        
-        
-    
-
-
 
 
 
