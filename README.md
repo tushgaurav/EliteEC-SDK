@@ -6,14 +6,14 @@ There was no Python SDK for the Elite EC Series of Cobots, so I decided to make 
 ## Usage
 > Please insure that the robot is in remote mode when using this SDK.
 
-You can ininsiate a robot class for each robot, the robot class requires IP address at the time of object creation.
+You can instantiate a robot class for each robot, the robot class requires IP address at the time of object creation.
 
 ```python
 warehouse_bot = Robot("192.168.0.1")
 ```
 
 You need to follow these steps to send commands to the robot.
-1. Insinitate a new robot object with IP and Port (by default Robot class uses Port 8055).
+1. Instantiate a new robot object with IP and Port (by default Robot class uses Port 8055).
 2. Make connection to the robot.
 3. Send commands to the robot using the execute function or set variables using setVariable function.
 4. After usage is over, You should ideally disconnect the robot using disconnect function.
