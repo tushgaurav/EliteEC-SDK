@@ -1,0 +1,2 @@
+[console_scripts]
+test-connection = robot.__main__:main
