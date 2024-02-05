@@ -108,7 +108,12 @@ class Robot:
             if suc:
                 return [id, result]
             else:
-                raise Exception(f"Can not execute: {result}")
+                # Check if the not executed due to remote mode not enabled
+                if result["code"] == -32693:
+                    raise Exception(
+                        f"Robot must be in Remote Mode to execute {command}. Enable remote mode from the teach pendant.")
+                else:
+                    raise Exception(f"Can not execute: {result}")
         else:
             return [False, "Robot not connected."]
         
