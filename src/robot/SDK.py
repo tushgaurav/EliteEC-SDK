@@ -116,7 +116,86 @@ class Robot:
                     raise Exception(f"Can not execute: {result}")
         else:
             return [False, "Robot not connected."]
-        
+
+    def getStatus(self) -> str:
+        '''
+        Get the status of the robot. The status can be one of the following:
+        - STOP
+        - PAUSE
+        - EMERGENCY_STOP
+        - RUNNING
+        - ALARM
+        - COLLISION
+
+        Returns:
+            str: The status of the robot.
+
+        '''
+        STATES = [
+            "STOP",
+            "PAUSE",
+            "EMERGENCY_STOP",
+            "RUNNING",
+            "ALARM",
+            "COLLISION",
+        ]
+
+        _, result = self.execute("getRobotState")
+
+        return STATES[result]
+
+    def getRobotMode(self) -> str:
+        '''
+        Get the mode of the robot. The mode can be one of the following:
+        - TEACHING
+        - OPERATING
+        - REMOTE
+
+        Returns:
+            str: The mode of the robot.
+
+        '''
+
+        MODES = [
+            "TEACHING",
+            "OPERATING",
+            "REMOTE"
+        ]
+
+        _, result = self.execute("getRobotMode", {})
+
+        return MODES[result]
+
+    # Collision Options
+    def getCollisionStatus(self) -> bool:
+        '''
+        Get the collision status of the robot.
+
+        Returns:
+            bool: True if collision is detected, False otherwise.
+
+        '''
+
+        _, result = self.execute("getCollisionState")
+
+        return result == 1
+
+    def setCollisionDetection(self, status: bool) -> bool:
+        '''
+        Set the collision detection status of the robot.
+
+        Attributes:
+            status (bool): True to enable collision detection, False to disable.
+
+        Returns:
+            bool: True if collision detection status is set, False otherwise.
+
+        '''
+
+        _, result = self.execute("setCollisionEnable", {"enable": status})
+
+        return result
+
     def getVariable(self, variable_type, variable_address):
         '''
         This function is used to get the value of a variable from the robot.
