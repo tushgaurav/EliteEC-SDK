@@ -1,10 +1,11 @@
 import warnings
-import Logo
+
+from logo import Logo
 import SDK
 
 warnings.filterwarnings('ignore')
-print(Logo.Logo.ASCII_ART)
-print(Logo.Logo.STRING_LOGO)
+print(Logo.ASCII_ART)
+print(Logo.STRING_LOGO)
 
 
 def main():

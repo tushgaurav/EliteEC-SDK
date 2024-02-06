@@ -45,7 +45,7 @@ class Robot:
         except Exception as e:
             return (False, None, None)
 
-    def connect(self):
+    def connect(self) -> list:
         '''
         This function is used to establish a connection with the robot.
 
@@ -73,7 +73,7 @@ class Robot:
         else:
             return [False, f"Cannot connect at IP:{self.ip_address}"]
 
-    def disconnect(self):
+    def disconnect(self) -> list:
         '''
         This function is used to disconnect from the robot.
 
@@ -88,7 +88,7 @@ class Robot:
             self.sock = None
             return [True, "Robot Disconnect Success, Robot was already disconected."]
 
-    def execute(self, command, params=None):
+    def execute(self, command: str, params: dict=None) -> list:
         '''
         This function is used to execute commands on the robot. Better version of the official sendCMD function.
 
@@ -140,9 +140,11 @@ class Robot:
             "COLLISION",
         ]
 
-        _, result = self.execute("getRobotState")
-
-        return STATES[result]
+        if self.connect_success:
+            _, result = self.execute("getRobotState")
+            return STATES[result]
+        else:
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
 
     def getRobotMode(self) -> str:
         '''
@@ -162,9 +164,11 @@ class Robot:
             "REMOTE"
         ]
 
-        _, result = self.execute("getRobotMode", {})
-
-        return MODES[result]
+        if self.connect_success:
+            _, result = self.execute("getRobotMode")
+            return MODES[result]
+        else:
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
 
     # Collision Options
     def getCollisionStatus(self) -> bool:
@@ -176,9 +180,12 @@ class Robot:
 
         '''
 
-        _, result = self.execute("getCollisionState")
+        if self.connect_success:
+            _, result = self.execute("getCollisionEnable")
+            return result == 1
+        else:
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
 
-        return result == 1
 
     def setCollisionDetection(self, status: bool) -> bool:
         '''
@@ -191,12 +198,14 @@ class Robot:
             bool: True if collision detection status is set, False otherwise.
 
         '''
+        if self.connect_success:
+            _, result = self.execute("setCollisionEnable", {"enable": status})
+            return result
+        else:
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
+        
 
-        _, result = self.execute("setCollisionEnable", {"enable": status})
-
-        return result
-
-    def getVariable(self, variable_type, variable_address):
+    def getVariable(self, variable_type: str, variable_address: int) -> list:
         '''
         This function is used to get the value of a variable from the robot.
 
@@ -216,9 +225,9 @@ class Robot:
             else:
                 raise Exception(f"Can not get variable: {result}")
         else:
-            return [False, f"Robot not connected at IP:{self.ip_address}"]
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
 
-    def setVariable(self, variable_type, variable_address, variable_value):
+    def setVariable(self, variable_type: str, variable_address: int, variable_value: int) -> list:
         '''
         This function is used to set the value of a variable from the robot.
 
@@ -238,9 +247,9 @@ class Robot:
             else:
                 raise Exception(f"Can not set variable: {result}")
         else:
-            return [False, f"Robot not connected at IP:{self.ip_address}"]
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
 
-    def setServoStatus(self, status):
+    def setServoStatus(self, status: int) -> list:
         '''
         This function is used to set the servo status of the robot.
 
@@ -258,9 +267,91 @@ class Robot:
             else:
                 raise Exception(f"Can not set servo status: {result}")
         else:
-            return [False, f"Robot not connected at IP:{self.ip_address}"]
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
 
-    def runJbi(self, jbi_filename):
+    def stopOperation(self) -> bool:
+        '''
+        This function is used to stop the robot operation.
+
+        Returns:
+            bool: True if the robot is stopped, False otherwise.
+        '''
+        if self.connect_success:
+            suc, result, _ = self.execute("stop")
+            if suc:
+                return result
+            else:
+                raise Exception(f"Can not stop robot: {result}")
+        else:
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
+    
+    def pause(self) -> bool:
+        '''
+        This function is used to pause the robot operation.
+
+        Returns:
+            bool: True if the robot is paused, False otherwise.
+        '''
+        if self.connect_success:
+            suc, result, _ = self.execute("pause")
+            if suc:
+                return result
+            else:
+                raise Exception(f"Can not pause robot: {result}")
+        else:
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
+    
+    def run(self) -> bool:
+        '''
+        This function is used to run the robot operation.
+
+        Returns:
+            bool: True if the robot is running, False otherwise.
+        '''
+        if self.connect_success:
+            suc, result, _ = self.execute("run")
+            if suc:
+                return result
+            else:
+                raise Exception(f"Can not run robot: {result}")
+        else:
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
+        
+    def setSpeed(self, speed) -> bool:
+        '''
+        This function is used to set the robot running speed.
+
+        Attributes:
+            speed (double [0.05,100]): The speed value.
+
+        Returns:
+            bool: True if the speed is set, False otherwise.
+        '''
+        if self.connect_success:
+            id, result = self.execute("setSpeed", {"value": speed})
+            return result
+        else:
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
+        
+    # JBI File Operations
+    def checkJbiExist(self, jbi_filename: str) -> bool:
+        '''
+        This function is used to check if a jbi file exists on the robot.
+
+        Attributes:
+            jbi_filename (string): The name of the jbi file we want to check.
+
+        Returns:
+            bool: True if the jbi file exists, False otherwise.
+        '''
+        if self.connect_success:
+            id, result = self.execute(
+                "checkJbiExist", {"filename": jbi_filename})
+            return result == 1
+        else:
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
+
+    def runJbi(self, jbi_filename) -> list:
         '''
         This function is used to run a jbi file on the robot.
 
@@ -272,21 +363,16 @@ class Robot:
         '''
 
         if self.connect_success:
-            suc, result, id = self.sendCMD(self.sock, "checkJbiExist", {
-                                           "filename": jbi_filename})
-            if suc and result == 1:
-                suc, result, id = self.sendCMD(
-                    self.sock, "runJbi", {"filename": jbi_filename})
-                if suc:
-                    return [id, result]
-                else:
-                    raise Exception(f"Can not run jbi: {result}")
+            if self.checkJbiExist(jbi_filename):
+                id, result = self.execute(
+                    "runJbi", {"filename": jbi_filename})
+                return [id, result]
             else:
-                raise Exception(f"Can not run jbi: {result}")
+                raise Exception(f"Jbi file {jbi_filename} does not exist.")
         else:
-            return [False, f"Robot not connected at IP:{self.ip_address}"]
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
 
-    def getJbiState(self):
+    def getJbiState(self) -> list:
         '''
         This function is used to get the state of the jbi file running on the robot.
 
@@ -300,91 +386,11 @@ class Robot:
             else:
                 raise Exception(f"Can not get jbi state: {result}")
         else:
-            return [False, f"Robot not connected at IP:{self.ip_address}"]
+            raise Exception(f"Robot not connected at IP:{self.ip_address}")
 
     def __repr__(self):
         return f'Robot Object at IP:{self.ip_address}, Connection:{self.connect_success}'
 
 
 if __name__ == "__main__":
-    # robot_ip = "192.168.0.2"
-    # i = 5
-    # conSuc,sock=connectETController(robot_ip)
-    # if(conSuc):
-    #     suc,result,id=sendCMD(sock,"getCurrentCoord")
-    #     for n in range (0, 11 ,1) :
-    #         # Set system B variable value
-    #         suc, result , id=sendCMD(sock,"setSysVarI",{"addr":i,"value":10})
-    #         print(suc, result, id)
-
-    robot = Robot("192.168.0.2")
-    print(robot)
-    result = robot.execute("setSysVarI", {"addr": 1, "value": 10})
-    print(result)
-    result = robot.getVariable("SysVarI", 1)
-    print("getVariable", result)
-    print(robot.disconnect())
-    # print(robot.connect())
-
-    # robot_ip = "192.168.0.2"
-    # conSuc,sock=connectETController(robot_ip)
-
-    # if (conSuc):
-    # # Get the state of the robot servo alarm
-    #     suc, result , id = sendCMD(sock, "get_actual_tcp",{"tool_num":1,"user_num":1})
-    #     print( suc, result, id )
-    # else :
-    #     print ("Connection failed")
-    #     disconnectETController(sock)
-
-    # jbi_filename = "trial"
-
-    # # servo status
-    # suc, result , id=sendCMD(sock, "getServoStatus")
-    # if ( result == 0):
-    #     # Set the servo status of the robot arm to ON
-    #     suc, result , id=sendCMD(sock,"set_servo_status",{"status":1})
-    #     print("Servo Status")
-    #     print(suc, result, id)
-    #     time.sleep(1)
-
-    # if (conSuc):
-    #     # Check if the jbi file exists
-    #     suc, result , id=sendCMD(sock,"checkJbiExist",{"filename": jbi_filename })
-    #     if (suc and result ==1):
-    #         # Run jbi file
-    #         suc, result , id=sendCMD(sock,"runJbi",{"filename": jbi_filename })
-    #         if (suc and result ) :
-    #             checkRunning=3
-    #             while(checkRunning==3):
-    #                 # Get jbi file running status
-    #                 suc, result , id=sendCMD(sock,"getJbiState")
-    #                 checkRunning=result[" runState "]
-    #                 time. sleep (0.1)
-
-    # if(conSuc):
-    #     suc, result , id=sendCMD(sock,"checkJbiExist",{"filename": jbi_filename })
-    #     if (suc and result ==1):
-    #         # Run jbi file
-    #         suc, result , id=sendCMD(sock,"runJbi",{"filename": jbi_filename })
-    #         print(suc, result, id)
-
-    #         # set system B variable
-    #         suc, result , id = sendCMD(sock, "getSysVarB", {"addr":0})
-    #         print( result )
-
-    #         suc, result , id=sendCMD(sock,"setSysVarB",{"addr":0,"value":11})
-    #         print("Variable B set result")
-    #         print(suc, result, id)
-    # else:
-    #     print("Cannot Connect to Robot")
-    #     print("Exiting...")
-    #     sys.exit(100)
-
-
-def disconnectETController(sock):
-    if (sock):
-        sock.close()
-        sock = None
-    else:
-        sock = None
+    print("This is a library file, not a standalone script.")
